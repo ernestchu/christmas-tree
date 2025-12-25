@@ -1,0 +1,5 @@
+node_modules
+test-images
+src/App.tsx.backup
+.DS_Store
+*.log

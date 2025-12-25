@@ -68,5 +68,21 @@ const TOTAL_NUMBERED_PHOTOS = 31; // <--- 修改这个数字！
 };
 ### 📄 License
 MIT License. Feel free to use and modify for your own holiday celebrations!
+
+## 🌐 Deployment (Vercel)
+
+This project is ready to be deployed on Vercel. 
+
+1. Push your code to a GitHub repository.
+2. Import the repository in [Vercel](https://vercel.com).
+3. Vercel will automatically detect Vite and use the correct settings.
+4. Click **Deploy**.
+
+Alternatively, you can deploy using the Vercel CLI:
+```bash
+npm i -g vercel
+vercel
+```
+
 ### Merry Christmas! 🎄✨
 
