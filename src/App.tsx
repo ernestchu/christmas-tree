@@ -16,7 +16,7 @@ import { MathUtils } from 'three';
 import * as random from 'maath/random';
 import { GestureRecognizer, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
-const TOTAL_NUMBERED_PHOTOS = 30;
+const TOTAL_NUMBERED_PHOTOS = 68;
 const bodyPhotoPaths = Array.from({ length: TOTAL_NUMBERED_PHOTOS }, (_, i) => `/photos/${i + 1}.jpg`)
 
 const CONFIG = {
@@ -37,7 +37,7 @@ const CONFIG = {
   },
   counts: {
     foliage: 15000,
-    ornaments: 100,   // 拍立得照片数量
+    ornaments: bodyPhotoPaths.length,   // 拍立得照片数量
     elements: 200,    // 圣诞元素数量
     lights: 400       // 彩灯数量
   },
@@ -521,12 +521,12 @@ export default function GrandTreeApp() {
             {CONFIG.counts.ornaments.toLocaleString()} <span style={{ fontSize: '10px', color: '#555', fontWeight: 'normal' }}>POLAROIDS</span>
           </p>
         </div>
-        <div>
+        {/* <div>
           <p style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' }}>Foliage</p>
           <p style={{ fontSize: '24px', color: '#004225', fontWeight: 'bold', margin: 0 }}>
             {(CONFIG.counts.foliage / 1000).toFixed(0)}K <span style={{ fontSize: '10px', color: '#555', fontWeight: 'normal' }}>EMERALD NEEDLES</span>
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* UI - Buttons */}
