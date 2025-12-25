@@ -117,9 +117,9 @@ const Foliage = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Component: Photo Ornaments (Double-Sided Polaroid) ---
-const PhotoOrnaments = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
-  const textures = useTexture(CONFIG.photos.body);
-  const count = CONFIG.counts.ornaments;
+const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: string[] }) => {
+  const textures = useTexture(photos);
+  const count = photos.length;
   const groupRef = useRef<THREE.Group>(null);
 
   const borderGeometry = useMemo(() => new THREE.PlaneGeometry(1.2, 1.5), []);
@@ -134,8 +134,8 @@ const PhotoOrnaments = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
       const theta = Math.random() * Math.PI * 2;
       const targetPos = new THREE.Vector3(currentRadius * Math.cos(theta), y, currentRadius * Math.sin(theta));
 
-      const isBig = Math.random() < 0.2;
-      const baseScale = isBig ? 2.2 : 0.8 + Math.random() * 0.6;
+      const isBig = Math.random() < 0.4;
+      const baseScale = isBig ? 2.2 : 1.5 + Math.random() * 0.4;
       const weight = 0.8 + Math.random() * 1.2;
       const borderColor = CONFIG.colors.borders[Math.floor(Math.random() * CONFIG.colors.borders.length)];
 
@@ -374,7 +374,7 @@ const TopStar = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Main Scene Experience ---
-const Experience = ({ sceneState, rotationSpeed }: { sceneState: 'CHAOS' | 'FORMED', rotationSpeed: number }) => {
+const Experience = ({ sceneState, rotationSpeed, photos }: { sceneState: 'CHAOS' | 'FORMED', rotationSpeed: number, photos: string[] }) => {
   const controlsRef = useRef<any>(null);
   useFrame(() => {
     if (controlsRef.current) {
@@ -400,7 +400,7 @@ const Experience = ({ sceneState, rotationSpeed }: { sceneState: 'CHAOS' | 'FORM
       <group position={[0, -6, 0]}>
         <Foliage state={sceneState} />
         <Suspense fallback={null}>
-          <PhotoOrnaments state={sceneState} />
+          <PhotoOrnaments state={sceneState} photos={photos} />
           <ChristmasElements state={sceneState} />
           <FairyLights state={sceneState} />
           <TopStar state={sceneState} />
@@ -503,22 +503,61 @@ export default function GrandTreeApp() {
   const [rotationSpeed, setRotationSpeed] = useState(0);
   const [aiStatus, setAiStatus] = useState("INITIALIZING...");
   const [debugMode, setDebugMode] = useState(false);
+  const [photos, setPhotos] = useState<string[]>(CONFIG.photos.body);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newPhotos: string[] = [];
+      Array.from(e.target.files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          newPhotos.push(URL.createObjectURL(file));
+        }
+      });
+      if (newPhotos.length > 0) {
+        setPhotos(newPhotos);
+      }
+    }
+  };
 
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000', position: 'relative', overflow: 'hidden' }}>
       <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
         <Canvas dpr={[1, 2]} gl={{ toneMapping: THREE.ReinhardToneMapping }} shadows>
-          <Experience sceneState={sceneState} rotationSpeed={rotationSpeed} />
+          <Experience sceneState={sceneState} rotationSpeed={rotationSpeed} photos={photos} />
         </Canvas>
       </div>
       <GestureController onGesture={setSceneState} onMove={setRotationSpeed} onStatus={setAiStatus} debugMode={debugMode} />
 
       {/* UI - Stats */}
       <div style={{ position: 'absolute', bottom: '30px', left: '40px', color: '#888', zIndex: 10, fontFamily: 'sans-serif', userSelect: 'none' }}>
+        <label style={{
+          display: 'block',
+          marginBottom: '15px',
+          padding: '8px 12px',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          border: '1px solid #FFD700',
+          color: '#FFD700',
+          fontFamily: 'sans-serif',
+          fontSize: '10px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          backdropFilter: 'blur(4px)',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          width: 'fit-content'
+        }}>
+          Upload Folder
+          <input
+            type="file"
+            {...({ webkitdirectory: "", directory: "", multiple: true } as any)}
+            style={{ display: 'none' }}
+            onChange={handleUpload}
+          />
+        </label>
         <div style={{ marginBottom: '15px' }}>
           <p style={{ fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' }}>Memories</p>
           <p style={{ fontSize: '24px', color: '#FFD700', fontWeight: 'bold', margin: 0 }}>
-            {CONFIG.counts.ornaments.toLocaleString()} <span style={{ fontSize: '10px', color: '#555', fontWeight: 'normal' }}>POLAROIDS</span>
+            {photos.length.toLocaleString()} <span style={{ fontSize: '10px', color: '#555', fontWeight: 'normal' }}>POLAROIDS</span>
           </p>
         </div>
         {/* <div>
