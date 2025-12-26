@@ -397,7 +397,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
             playsInline
             autoPlay
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 70%)' }} />
+          {/* <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 70%)' }} /> */}
           <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', color: '#ffd700', fontSize: '12px', letterSpacing: '2px', zIndex: 10, background: 'rgba(0,0,0,0.6)', padding: '6px 10px', borderRadius: '6px' }}>
             {streamStatus}
           </div>
