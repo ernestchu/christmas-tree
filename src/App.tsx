@@ -410,7 +410,7 @@ const Experience = ({ sceneState, rotationSpeed, photos }: { sceneState: SceneSt
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 8, 60]} fov={45} />
+      <PerspectiveCamera makeDefault position={[0, 8, 45]} fov={45} />
       <OrbitControls ref={controlsRef} enablePan={false} enableZoom={true} minDistance={30} maxDistance={120} autoRotate={rotationSpeed === 0 && sceneState === 'FORMED'} autoRotateSpeed={0.3} maxPolarAngle={Math.PI / 1.7} />
 
       <color attach="background" args={['#000300']} />
@@ -507,7 +507,7 @@ const GestureController = ({ onGesture, onMove, onStatus, debugMode }: any) => {
               const speed = (0.5 - results.landmarks[0][0].x) * 0.15;
               onMove(Math.abs(speed) > 0.01 ? -speed : 0);
             }
-          } else { onMove(0); if (debugMode) onStatus("AI READY: NO HAND"); }
+          } else { if (debugMode) onStatus("AI READY: NO HAND"); }
         }
         requestRef = requestAnimationFrame(predictWebcam);
       }
