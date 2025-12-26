@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, Suspense } from 'react';
+import { useState, useMemo, useRef, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -16,7 +16,7 @@ import { MathUtils } from 'three';
 import * as random from 'maath/random';
 import { GestureRecognizer, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
-type SceneState = 'CHAOS' | 'FORMED' | 'CAROUSEL';
+type SceneState = 'CHAOS' | 'FORMED' | 'CAROUSEL' | 'PHOTO';
 
 const bodyPhotoPaths = Array.from({ length: 68 }, (_, i) => `/photos/${i + 1}.jpg`)
 
@@ -170,34 +170,97 @@ const PhotoOrnaments = ({ state, photos }: { state: SceneState, photos: string[]
     });
   }, [textures, count]);
 
+  const lastLayoutStateRef = useRef<SceneState>('FORMED');
+  const focusedIndexRef = useRef<number>(-1);
+  const prevSceneStateRef = useRef<SceneState>(state);
+
+  // ... (geometry and data memos are fine, they are before this block in the file but inside component)
+
   useFrame((stateObj, delta) => {
     if (!groupRef.current) return;
-    const isFormed = state === 'FORMED';
-    const isCarousel = state === 'CAROUSEL';
+
+    // Detect transition to PHOTO state
+    if (state === 'PHOTO' && prevSceneStateRef.current !== 'PHOTO') {
+      const cameraPos = stateObj.camera.position;
+      let minDistance = Infinity;
+      let closestIndex = -1;
+      groupRef.current.children.forEach((child, i) => {
+        const dist = child.position.distanceTo(cameraPos);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestIndex = i;
+        }
+      });
+      focusedIndexRef.current = closestIndex;
+    }
+
+    // Update layout state history
+    if (state !== 'PHOTO') {
+      lastLayoutStateRef.current = state;
+    }
+    prevSceneStateRef.current = state;
+
+    const layoutState = state === 'PHOTO' ? lastLayoutStateRef.current : state;
+    const isFormed = layoutState === 'FORMED';
+    const isCarousel = layoutState === 'CAROUSEL';
     const time = stateObj.clock.elapsedTime;
 
     groupRef.current.children.forEach((group, i) => {
       const objData = data[i];
-      const target = isFormed ? objData.targetPos : (isCarousel ? objData.carouselPos : objData.chaosPos);
+      const isFocused = state === 'PHOTO' && i === focusedIndexRef.current;
 
-      // Scale Logic: Varied in FORMED, Uniform (1.5) in others
-      const targetScale = isFormed ? objData.formedScale : 1.5;
-      group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 2.0);
+      let targetPos;
+      if (isFormed) targetPos = objData.targetPos;
+      else if (isCarousel) targetPos = objData.carouselPos;
+      else targetPos = objData.chaosPos;
 
-      objData.currentPos.lerp(target, delta * (isFormed ? 0.8 * objData.weight : (isCarousel ? 2.0 : 0.5)));
+      if (isFocused) {
+        // Pop-out logic
+        const camera = stateObj.camera as THREE.PerspectiveCamera;
+        const fov = MathUtils.degToRad(camera.fov);
+        const aspect = camera.aspect;
+        // Target visual size: 90% of screen
+        // Ornament size (with border) ~ height 1.5, width 1.2
+        const distH = 1.5 / (0.9 * 2 * Math.tan(fov / 2));
+        const distW = 1.2 / (0.9 * 2 * Math.tan(fov / 2) * aspect);
+        const distance = Math.max(distH, distW);
+
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        targetPos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+        // Scale to 1 for calculation consistency
+        group.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 5);
+        objData.currentPos.lerp(targetPos, delta * 5);
+
+        // Make it look at camera (invert rotation so front faces camera)
+        group.lookAt(camera.position);
+      } else {
+        // Standard behavior
+        const targetScale = isFormed ? objData.formedScale : 1.5;
+        group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 2.0);
+        objData.currentPos.lerp(targetPos, delta * (isFormed ? 0.8 * objData.weight : (isCarousel ? 2.0 : 0.5)));
+
+        if (state === 'PHOTO') {
+          // In PHOTO mode, unfocused items stay in background (layout position)
+          // We do nothing special for rotation here, or maybe pause it?
+          // Let's let them idle with standard rotation logic below
+        }
+      }
+
       group.position.copy(objData.currentPos);
 
-      if (isFormed) {
+      // Rotation Logic
+      if (isFocused) {
+        // Rotation handled by lookAt above
+      } else if (isFormed) {
         const targetLookPos = new THREE.Vector3(group.position.x * 2, group.position.y + 0.5, group.position.z * 2);
         group.lookAt(targetLookPos);
-
         const wobbleX = Math.sin(time * objData.wobbleSpeed + objData.wobbleOffset) * 0.05;
         const wobbleZ = Math.cos(time * objData.wobbleSpeed * 0.8 + objData.wobbleOffset) * 0.05;
         group.rotation.x += wobbleX;
         group.rotation.z += wobbleZ;
-
       } else if (isCarousel) {
-        // Smoothly rotate to carousel orientation (facing outward)
         group.rotation.x = MathUtils.lerp(group.rotation.x, objData.carouselRotation.x, delta * 3);
         group.rotation.y = MathUtils.lerp(group.rotation.y, objData.carouselRotation.y, delta * 3);
         group.rotation.z = MathUtils.lerp(group.rotation.z, objData.carouselRotation.z, delta * 3);
@@ -501,6 +564,7 @@ const GestureController = ({ onGesture, onMove, onStatus, debugMode }: any) => {
               if (name === "Open_Palm") onGesture("CHAOS");
               if (name === "Closed_Fist") onGesture("FORMED");
               if (name === "Victory") onGesture("CAROUSEL");
+              if (name === "Pointing_Up") onGesture("PHOTO");
               if (debugMode) onStatus(`DETECTED: ${name}`);
             }
             if (results.landmarks.length > 0) {
@@ -586,14 +650,22 @@ export default function GrandTreeApp() {
     }
   };
 
+  const handleGesture = useCallback((newState: SceneState) => {
+    setSceneState((prev) => {
+      if (newState === 'PHOTO' && prev !== 'CAROUSEL') return prev;
+      else if (prev === 'PHOTO' && newState !== 'CAROUSEL') return prev;
+      return newState;
+    });
+  }, []);
+
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000', position: 'relative', overflow: 'hidden' }}>
       <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
         <Canvas dpr={[1, 2]} gl={{ toneMapping: THREE.ReinhardToneMapping }} shadows>
-          <Experience sceneState={sceneState} rotationSpeed={rotationSpeed} photos={photos} />
+          <Experience sceneState={sceneState} rotationSpeed={sceneState === 'PHOTO' ? 0 : rotationSpeed} photos={photos} />
         </Canvas>
       </div>
-      <GestureController onGesture={setSceneState} onMove={setRotationSpeed} onStatus={setAiStatus} debugMode={debugMode} />
+      <GestureController onGesture={handleGesture} onMove={setRotationSpeed} onStatus={setAiStatus} debugMode={debugMode} />
 
       {/* UI - Stats */}
       <div style={{ position: 'absolute', bottom: '30px', left: '40px', color: '#888', zIndex: 10, fontFamily: 'sans-serif', userSelect: 'none' }}>
