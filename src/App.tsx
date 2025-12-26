@@ -16,8 +16,7 @@ import { MathUtils } from 'three';
 import * as random from 'maath/random';
 import { GestureRecognizer, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
-const TOTAL_NUMBERED_PHOTOS = 68;
-const bodyPhotoPaths = Array.from({ length: TOTAL_NUMBERED_PHOTOS }, (_, i) => `/photos/${i + 1}.jpg`)
+const bodyPhotoPaths = Array.from({ length: 68 }, (_, i) => `/photos/${i + 1}.jpg`)
 
 const CONFIG = {
   colors: {
@@ -37,7 +36,6 @@ const CONFIG = {
   },
   counts: {
     foliage: 15000,
-    ornaments: bodyPhotoPaths.length,   // 拍立得照片数量
     elements: 200,    // 圣诞元素数量
     lights: 400       // 彩灯数量
   },
@@ -497,6 +495,37 @@ const GestureController = ({ onGesture, onMove, onStatus, debugMode }: any) => {
   );
 };
 
+const compressImage = (file: File, maxWidth = 512, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Could not get canvas context'));
+
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 // --- App Entry ---
 export default function GrandTreeApp() {
   const [sceneState, setSceneState] = useState<'CHAOS' | 'FORMED'>('FORMED');
@@ -505,16 +534,25 @@ export default function GrandTreeApp() {
   const [debugMode, setDebugMode] = useState(false);
   const [photos, setPhotos] = useState<string[]>(CONFIG.photos.body);
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newPhotos: string[] = [];
-      Array.from(e.target.files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-          newPhotos.push(URL.createObjectURL(file));
+      setAiStatus("COMPRESSING IMAGES...");
+      try {
+        const fileArray = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+
+        // Process in batches or all at once? Let's do all at once but with a limit if many.
+        // For simplicity and since it's client-side, browser will handle it.
+        const compressedPhotos = await Promise.all(
+          fileArray.map(file => compressImage(file))
+        );
+
+        if (compressedPhotos.length > 0) {
+          setPhotos(compressedPhotos);
+          setAiStatus("UPLOAD COMPLETE");
         }
-      });
-      if (newPhotos.length > 0) {
-        setPhotos(newPhotos);
+      } catch (err) {
+        console.error("Compression failed:", err);
+        setAiStatus("ERROR: COMPRESSION FAILED");
       }
     }
   };
