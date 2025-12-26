@@ -147,7 +147,7 @@ const PhotoOrnaments = ({ state, photos }: { state: SceneState, photos: string[]
       const chaosRotation = new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
 
       // Carousel Layout Calculation (Single Row)
-      const carouselRadius = Math.max(16, count * 1.5 / (2 * Math.PI)); // Ensure enough circumference
+      const carouselRadius = Math.max(16, count * 2 / (2 * Math.PI)); // Ensure enough circumference
       const angle = (i / count) * Math.PI * 2;
       const carX = carouselRadius * Math.sin(angle);
       const carZ = carouselRadius * Math.cos(angle);
