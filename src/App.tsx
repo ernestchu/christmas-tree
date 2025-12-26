@@ -422,7 +422,7 @@ const Experience = ({ sceneState, rotationSpeed, photos }: { sceneState: SceneSt
       <pointLight position={[-30, 10, -30]} intensity={50} color={CONFIG.colors.gold} />
       <pointLight position={[0, -20, 10]} intensity={30} color="#ffffff" />
 
-      <group position={[0, -6, 0]}>
+      <group position={[0, 0, 0]}>
         <Foliage state={sceneState} />
         <Suspense fallback={null}>
           <PhotoOrnaments state={sceneState} photos={photos} />
