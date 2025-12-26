@@ -16,6 +16,8 @@ import { MathUtils } from 'three';
 import * as random from 'maath/random';
 import { GestureRecognizer, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
+type SceneState = 'CHAOS' | 'FORMED' | 'CAROUSEL';
+
 const bodyPhotoPaths = Array.from({ length: 68 }, (_, i) => `/photos/${i + 1}.jpg`)
 
 const CONFIG = {
@@ -80,7 +82,7 @@ const getTreePosition = () => {
 };
 
 // --- Component: Foliage ---
-const Foliage = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
+const Foliage = ({ state }: { state: SceneState }) => {
   const materialRef = useRef<any>(null);
   const { positions, targetPositions, randoms } = useMemo(() => {
     const count = CONFIG.counts.foliage;
@@ -115,7 +117,7 @@ const Foliage = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Component: Photo Ornaments (Double-Sided Polaroid) ---
-const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: string[] }) => {
+const PhotoOrnaments = ({ state, photos }: { state: SceneState, photos: string[] }) => {
   const textures = useTexture(photos);
   const count = photos.length;
   const groupRef = useRef<THREE.Group>(null);
@@ -133,7 +135,7 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
       const targetPos = new THREE.Vector3(currentRadius * Math.cos(theta), y, currentRadius * Math.sin(theta));
 
       const isBig = Math.random() < 0.4;
-      const baseScale = isBig ? 2.2 : 1.5 + Math.random() * 0.4;
+      const formedScale = isBig ? 2.2 : 1.5 + Math.random() * 0.4;
       const weight = 0.8 + Math.random() * 1.2;
       const borderColor = CONFIG.colors.borders[Math.floor(Math.random() * CONFIG.colors.borders.length)];
 
@@ -144,15 +146,26 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
       };
       const chaosRotation = new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
 
+      // Carousel Layout Calculation (Single Row)
+      const carouselRadius = Math.max(16, count * 1.5 / (2 * Math.PI)); // Ensure enough circumference
+      const angle = (i / count) * Math.PI * 2;
+      const carX = carouselRadius * Math.sin(angle);
+      const carZ = carouselRadius * Math.cos(angle);
+      const carY = 0;
+      const carouselPos = new THREE.Vector3(carX, carY, carZ);
+      const carouselRotation = new THREE.Euler(0, angle, 0);
+
       return {
-        chaosPos, targetPos, scale: baseScale, weight,
+        chaosPos, targetPos, formedScale, weight,
         textureIndex: i % textures.length,
         borderColor,
         currentPos: chaosPos.clone(),
         chaosRotation,
         rotationSpeed,
         wobbleOffset: Math.random() * 10,
-        wobbleSpeed: 0.5 + Math.random() * 0.5
+        wobbleSpeed: 0.5 + Math.random() * 0.5,
+        carouselPos,
+        carouselRotation
       };
     });
   }, [textures, count]);
@@ -160,13 +173,18 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
   useFrame((stateObj, delta) => {
     if (!groupRef.current) return;
     const isFormed = state === 'FORMED';
+    const isCarousel = state === 'CAROUSEL';
     const time = stateObj.clock.elapsedTime;
 
     groupRef.current.children.forEach((group, i) => {
       const objData = data[i];
-      const target = isFormed ? objData.targetPos : objData.chaosPos;
+      const target = isFormed ? objData.targetPos : (isCarousel ? objData.carouselPos : objData.chaosPos);
 
-      objData.currentPos.lerp(target, delta * (isFormed ? 0.8 * objData.weight : 0.5));
+      // Scale Logic: Varied in FORMED, Uniform (1.5) in others
+      const targetScale = isFormed ? objData.formedScale : 1.5;
+      group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 2.0);
+
+      objData.currentPos.lerp(target, delta * (isFormed ? 0.8 * objData.weight : (isCarousel ? 2.0 : 0.5)));
       group.position.copy(objData.currentPos);
 
       if (isFormed) {
@@ -178,6 +196,11 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
         group.rotation.x += wobbleX;
         group.rotation.z += wobbleZ;
 
+      } else if (isCarousel) {
+        // Smoothly rotate to carousel orientation (facing outward)
+        group.rotation.x = MathUtils.lerp(group.rotation.x, objData.carouselRotation.x, delta * 3);
+        group.rotation.y = MathUtils.lerp(group.rotation.y, objData.carouselRotation.y, delta * 3);
+        group.rotation.z = MathUtils.lerp(group.rotation.z, objData.carouselRotation.z, delta * 3);
       } else {
         group.rotation.x += delta * objData.rotationSpeed.x;
         group.rotation.y += delta * objData.rotationSpeed.y;
@@ -189,7 +212,7 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
   return (
     <group ref={groupRef}>
       {data.map((obj, i) => (
-        <group key={i} scale={[obj.scale, obj.scale, obj.scale]} rotation={state === 'CHAOS' ? obj.chaosRotation : [0, 0, 0]}>
+        <group key={i} rotation={state === 'CHAOS' ? obj.chaosRotation : [0, 0, 0]}>
           {/* 正面 */}
           <group position={[0, 0, 0.015]}>
             <mesh geometry={photoGeometry}>
@@ -225,7 +248,7 @@ const PhotoOrnaments = ({ state, photos }: { state: 'CHAOS' | 'FORMED', photos: 
 };
 
 // --- Component: Christmas Elements ---
-const ChristmasElements = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
+const ChristmasElements = ({ state }: { state: SceneState }) => {
   const count = CONFIG.counts.elements;
   const groupRef = useRef<THREE.Group>(null);
 
@@ -258,10 +281,14 @@ const ChristmasElements = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     const isFormed = state === 'FORMED';
+    const isCarousel = state === 'CAROUSEL';
     groupRef.current.children.forEach((child, i) => {
       const mesh = child as THREE.Mesh;
       const objData = data[i];
       const target = isFormed ? objData.targetPos : objData.chaosPos;
+      const targetScale = isCarousel ? 0 : objData.scale;
+
+      mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 3);
       objData.currentPos.lerp(target, delta * 1.5);
       mesh.position.copy(objData.currentPos);
       mesh.rotation.x += delta * objData.rotationSpeed.x; mesh.rotation.y += delta * objData.rotationSpeed.y; mesh.rotation.z += delta * objData.rotationSpeed.z;
@@ -281,7 +308,7 @@ const ChristmasElements = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Component: Fairy Lights ---
-const FairyLights = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
+const FairyLights = ({ state }: { state: SceneState }) => {
   const count = CONFIG.counts.lights;
   const groupRef = useRef<THREE.Group>(null);
   const geometry = useMemo(() => new THREE.SphereGeometry(0.8, 8, 8), []);
@@ -323,7 +350,7 @@ const FairyLights = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Component: Top Star (No Photo, Pure Gold 3D Star) ---
-const TopStar = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
+const TopStar = ({ state }: { state: SceneState }) => {
   const groupRef = useRef<THREE.Group>(null);
 
   const starShape = useMemo(() => {
@@ -372,7 +399,7 @@ const TopStar = ({ state }: { state: 'CHAOS' | 'FORMED' }) => {
 };
 
 // --- Main Scene Experience ---
-const Experience = ({ sceneState, rotationSpeed, photos }: { sceneState: 'CHAOS' | 'FORMED', rotationSpeed: number, photos: string[] }) => {
+const Experience = ({ sceneState, rotationSpeed, photos }: { sceneState: SceneState, rotationSpeed: number, photos: string[] }) => {
   const controlsRef = useRef<any>(null);
   useFrame(() => {
     if (controlsRef.current) {
@@ -471,7 +498,9 @@ const GestureController = ({ onGesture, onMove, onStatus, debugMode }: any) => {
           if (results.gestures.length > 0) {
             const name = results.gestures[0][0].categoryName; const score = results.gestures[0][0].score;
             if (score > 0.4) {
-              if (name === "Open_Palm") onGesture("CHAOS"); if (name === "Closed_Fist") onGesture("FORMED");
+              if (name === "Open_Palm") onGesture("CHAOS");
+              if (name === "Closed_Fist") onGesture("FORMED");
+              if (name === "Victory") onGesture("CAROUSEL");
               if (debugMode) onStatus(`DETECTED: ${name}`);
             }
             if (results.landmarks.length > 0) {
@@ -528,7 +557,7 @@ const compressImage = (file: File, maxWidth = 512, quality = 0.7): Promise<strin
 
 // --- App Entry ---
 export default function GrandTreeApp() {
-  const [sceneState, setSceneState] = useState<'CHAOS' | 'FORMED'>('FORMED');
+  const [sceneState, setSceneState] = useState<SceneState>('FORMED');
   const [rotationSpeed, setRotationSpeed] = useState(0);
   const [aiStatus, setAiStatus] = useState("INITIALIZING...");
   const [debugMode, setDebugMode] = useState(false);
