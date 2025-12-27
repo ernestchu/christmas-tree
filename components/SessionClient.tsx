@@ -13,7 +13,7 @@ type User = {
 type SceneSnapshot = {
   sceneState: SceneState;
   rotationSpeed: number;
-  photos: string[];
+  photos?: string[];
 };
 
 const RTC_CONFIG: RTCConfiguration = {
@@ -80,7 +80,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
       if (sceneState) {
         setSceneState(sceneState.sceneState);
         setRotationSpeed(sceneState.rotationSpeed);
-        setPhotos(sceneState.photos);
+        if (sceneState.photos) setPhotos(sceneState.photos);
       }
     });
 
@@ -121,16 +121,21 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
 
     socket.on('scene:state', ({ sceneState }: { sceneState: SceneSnapshot }) => {
       if (isControllerRef.current) return;
-      setSceneState(sceneState.sceneState);
-      setRotationSpeed(sceneState.rotationSpeed);
-      setPhotos(sceneState.photos);
+      if (sceneState.sceneState) setSceneState(sceneState.sceneState);
+      if (sceneState.rotationSpeed !== undefined) setRotationSpeed(sceneState.rotationSpeed);
+      if (sceneState.photos) setPhotos(sceneState.photos);
+    });
+
+    socket.on('photos:update', ({ photos }: { photos: string[] }) => {
+      if (isControllerRef.current) return;
+      setPhotos(photos);
     });
 
     socket.on('scene:sync', ({ sceneState }: { sceneState: SceneSnapshot | null }) => {
       if (!sceneState) return;
       setSceneState(sceneState.sceneState);
       setRotationSpeed(sceneState.rotationSpeed);
-      setPhotos(sceneState.photos);
+      if (sceneState.photos) setPhotos(sceneState.photos);
     });
 
     socket.on('webrtc:viewer-join', async ({ viewerId }: { viewerId: string }) => {
@@ -205,8 +210,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
         sessionId,
         sceneState: {
           sceneState,
-          rotationSpeed,
-          photos
+          rotationSpeed
         }
       });
     }, 150);
@@ -216,7 +220,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
         window.clearTimeout(sceneUpdateTimeoutRef.current);
       }
     };
-  }, [sceneState, rotationSpeed, photos, isController, sessionId]);
+  }, [sceneState, rotationSpeed, isController, sessionId]);
 
   useEffect(() => {
     if (isController) {
@@ -337,6 +341,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
       );
       if (compressedPhotos.length > 0) {
         setPhotos(compressedPhotos);
+        socketRef.current?.emit('photos:update', { sessionId, photos: compressedPhotos });
         setAiStatus('UPLOAD COMPLETE');
       }
     } catch (err) {

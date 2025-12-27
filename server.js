@@ -30,6 +30,7 @@ const getUsersPayload = (session) => {
 app.prepare().then(() => {
   const server = createServer((req, res) => handle(req, res));
   const io = new Server(server, {
+    maxHttpBufferSize: 1e8,
     cors: {
       origin: '*'
     }
@@ -61,8 +62,15 @@ app.prepare().then(() => {
     socket.on('scene:update', ({ sessionId, sceneState }) => {
       const session = sessions.get(sessionId);
       if (!session || session.controllerId !== socket.id) return;
-      session.sceneState = sceneState;
+      session.sceneState = { ...(session.sceneState || {}), ...sceneState };
       socket.to(sessionId).emit('scene:state', { sceneState });
+    });
+
+    socket.on('photos:update', ({ sessionId, photos }) => {
+      const session = sessions.get(sessionId);
+      if (!session || session.controllerId !== socket.id) return;
+      session.sceneState = { ...(session.sceneState || {}), photos };
+      socket.to(sessionId).emit('photos:update', { photos });
     });
 
     socket.on('control:request', ({ sessionId }) => {
