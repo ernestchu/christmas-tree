@@ -32,7 +32,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
   const [rotationSpeed, setRotationSpeed] = useState(0);
   const [photos, setPhotos] = useState<string[]>(DEFAULT_PHOTOS);
   const [aiStatus, setAiStatus] = useState('INITIALIZING...');
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(true);
   const [menuOpen, setMenuOpen] = useState(true);
   const [streamStatus, setStreamStatus] = useState('Waiting for controller stream...');
 
