@@ -662,6 +662,39 @@ export default function GrandTreeScene({
         </div>
       ) : null}
 
+      {showUi ? (
+        <div style={{
+          position: 'absolute',
+          top: '40px',
+          left: '40px',
+          color: '#ECEFF1',
+          zIndex: 10,
+          fontFamily: 'sans-serif',
+          fontSize: '14px',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 215, 0, 0.3)',
+          maxWidth: '340px',
+          backdropFilter: 'blur(4px)',
+          lineHeight: '1.5',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ marginBottom: '12px', color: '#FFD700', fontWeight: 'bold', fontSize: '16px' }}>Your hand is your magic wand 🪄</div>
+          <div style={{ marginBottom: '8px' }}>• Use 🤚🏻 to cancel GRAVITY 💫</div>
+          <div style={{ marginBottom: '8px' }}>• Use ✊🏻 to form the tree 🌲</div>
+          <div style={{ marginBottom: '8px' }}>• Use ✌🏻to make a magical ring 💍</div>
+          <div style={{ marginBottom: '8px', paddingLeft: '16px', fontSize: '13px', color: '#B0BEC5' }}>Inside the ring, curl your finger and make a ☝🏻 to get surprised!</div>
+          <div style={{ marginBottom: '12px' }}>• Swing your hand to make the it spin 🌀</div>
+          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#FFD54F', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+            HINT 💕 <br />
+            • You can upload your own folder of photos below. <br />
+            • Then tap <b>Share Link</b> to share with your loved ones <br />
+            • Remember to give them control to let them experience the magic of the tree 🌲
+          </div>
+        </div>
+      ) : null}
+
       <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', color: aiStatus.includes('ERROR') ? '#FF0000' : 'rgba(255, 215, 0, 0.4)', fontSize: '10px', letterSpacing: '2px', zIndex: 10, background: 'rgba(0,0,0,0.5)', padding: '4px 8px', borderRadius: '4px' }}>
         {aiStatus}
       </div>

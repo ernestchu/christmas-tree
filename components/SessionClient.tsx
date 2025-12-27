@@ -455,7 +455,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
                       cursor: isController && !isYou ? 'pointer' : 'default'
                     }}
                   >
-                    {user.name}{isYou ? ' (You)' : ''} {isUserController ? '• Controller' : ''} {isRequested ? '• Requested' : ''}
+                    {user.name}{isYou ? ' (You)' : ''} {isUserController ? '• 🤚🏻' : ''} {isRequested ? '• Requested' : ''}
                   </button>
                 );
               })}
