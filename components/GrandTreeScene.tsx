@@ -637,7 +637,7 @@ export default function GrandTreeScene({
       ) : null}
 
       {showUi ? (
-        <div style={{ position: 'absolute', bottom: '30px', right: '40px', zIndex: 10, display: 'flex', gap: '10px' }}>
+        <div style={{ position: 'absolute', bottom: '30px', right: '40px', width: '110px', zIndex: 10, display: 'flex', gap: '10px' }}>
           <button onClick={onToggleDebug} style={{ padding: '12px 15px', backgroundColor: debugMode ? '#FFD700' : 'rgba(0,0,0,0.5)', border: '1px solid #FFD700', color: debugMode ? '#000' : '#FFD700', fontFamily: 'sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
             {debugMode ? 'Hide Gesture' : 'Show Gesture'}
           </button>

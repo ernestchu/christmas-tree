@@ -397,7 +397,6 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
             playsInline
             autoPlay
           />
-          {/* <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 70%)' }} /> */}
           <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', color: '#ffd700', fontSize: '12px', letterSpacing: '2px', zIndex: 10, background: 'rgba(0,0,0,0.6)', padding: '6px 10px', borderRadius: '6px' }}>
             {streamStatus}
           </div>
@@ -419,18 +418,18 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
         </button>
       </div>
 
-      <div style={{ position: 'absolute', right: '20px', bottom: '20px', zIndex: 30, width: menuOpen ? '260px' : '48px', transition: 'width 0.2s ease' }}>
-        <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255, 215, 0, 0.4)', borderRadius: '16px', padding: '10px', boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
+      <div style={{ position: 'absolute', right: '40px', bottom: '100px', zIndex: 30, width: '110px' }}>
+        <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid #FFD700', padding: '10px', boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
-            style={{ width: '100%', padding: '6px 10px', borderRadius: '12px', border: '1px solid rgba(255, 215, 0, 0.4)', background: 'rgba(0,0,0,0.6)', color: '#ffd700', cursor: 'pointer', fontWeight: 600 }}
+            style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: 'none', color: '#FFD700', fontFamily: 'sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
           >
             {menuOpen ? 'Hide Users' : 'Users'}
           </button>
 
           {menuOpen ? (
             <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', color: '#f5e6b0' }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,215,0,0.6)' }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#FFD700' }}>
                 Online ({users.length})
               </div>
               {users.map((user) => {
