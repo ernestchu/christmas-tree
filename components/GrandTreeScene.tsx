@@ -515,7 +515,7 @@ const GestureController = ({ onGesture, onMove, onStatus, debugMode }: any) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.play();
-            onStatus('GESTURE CTRL READY');
+            onStatus('GESTURE CONTROL READY');
             predictWebcam();
           }
         } else {
@@ -655,8 +655,8 @@ export default function GrandTreeScene({
       ) : null}
 
       {showUi ? (
-        <div style={{ position: 'absolute', bottom: '30px', right: '40px', width: '110px', zIndex: 10, display: 'flex', gap: '10px' }}>
-          <button onClick={onToggleDebug} style={{ padding: '12px 15px', backgroundColor: debugMode ? '#FFD700' : 'rgba(0,0,0,0.5)', border: '1px solid #FFD700', color: debugMode ? '#000' : '#FFD700', fontFamily: 'sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
+        <div style={{ position: 'absolute', bottom: '30px', right: '40px', width: '150px', zIndex: 10, display: 'flex', gap: '10px' }}>
+          <button onClick={onToggleDebug} style={{ padding: '15px 0px', width: '100%', backgroundColor: debugMode ? '#FFD700' : 'rgba(0,0,0,0.5)', border: '1px solid #FFD700', color: debugMode ? '#000' : '#FFD700', fontFamily: 'sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)' }}>
             {debugMode ? 'Hide Gesture' : 'Show Gesture'}
           </button>
         </div>

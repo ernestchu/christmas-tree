@@ -55,7 +55,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
     const storageKey = `session-name-${sessionId}`;
     let storedName = sessionStorage.getItem(storageKey);
     if (!storedName) {
-      storedName = window.prompt('Enter your name to join this session') || '';
+      storedName = window.prompt('Enter your name 🌟') || '';
     }
     if (!storedName) {
       router.push('/');
@@ -364,9 +364,9 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
     const link = `${window.location.origin}/session/${sessionId}`;
     try {
       await navigator.clipboard.writeText(link);
-      window.alert('Session link copied to clipboard.');
+      window.alert('Share link copied to clipboard. 🎅🏻');
     } catch {
-      window.prompt('Copy this session link:', link);
+      window.prompt('Copy this link:', link);
     }
   };
 
@@ -411,25 +411,25 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
       <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 20, display: 'flex', gap: '8px' }}>
         <button
           onClick={handleCopyLink}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 215, 0, 0.6)', background: 'rgba(0,0,0,0.6)', color: '#ffd700', fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '8px 12px', border: '1px solid #ffd700', background: 'rgba(0,0,0,0.6)', color: '#ffd700', fontWeight: 600, cursor: 'pointer' }}
         >
           Share Link
         </button>
         <button
           onClick={() => router.push('/')}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 215, 0, 0.3)', background: 'rgba(0,0,0,0.6)', color: '#f5e6b0', fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '8px 12px', border: '1px solid rgba(255, 215, 0, 0.3)', background: 'rgba(0,0,0,0.6)', color: '#f5e6b0', fontWeight: 600, cursor: 'pointer' }}
         >
           Leave
         </button>
       </div>
 
-      <div style={{ position: 'absolute', right: '40px', bottom: '100px', zIndex: 30, width: '110px' }}>
+      <div style={{ position: 'absolute', right: '40px', bottom: '100px', zIndex: 30, width: '150px' }}>
         <div style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid #FFD700', padding: '10px', boxShadow: '0 10px 40px rgba(0,0,0,0.6)' }}>
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
             style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.5)', border: 'none', color: '#FFD700', fontFamily: 'sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
           >
-            {menuOpen ? 'Hide Users' : 'Users'}
+            {menuOpen ? '▲ Users' : '▼ Users'}
           </button>
 
           {menuOpen ? (

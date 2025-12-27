@@ -29,7 +29,7 @@ export default function HomePage() {
   const [sessionIdInput, setSessionIdInput] = useState('');
 
   const handleCreate = () => {
-    const name = window.prompt('Enter your name to create a session');
+    const name = window.prompt('Enter your name 🌟');
     if (!name) return;
     const sessionId = uuidv4();
     sessionStorage.setItem(`session-name-${sessionId}`, name);
@@ -45,9 +45,9 @@ export default function HomePage() {
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
-        <h1 style={{ marginTop: 0, fontSize: '28px', letterSpacing: '1px' }}>Christmas Tree Session</h1>
+        <h1 style={{ marginTop: 0, fontSize: '28px', letterSpacing: '1px' }}>🎄🌟🎄🌟🎄</h1>
         <p style={{ color: 'rgba(245, 230, 176, 0.7)', lineHeight: 1.6 }}>
-          Create a shared tree experience or join with a session link. You will be asked for your name on entry.
+          Create a shared tree experience ❤️
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
           <button
@@ -62,9 +62,9 @@ export default function HomePage() {
               cursor: 'pointer'
             }}
           >
-            Create Session
+            Plant My Tree 🌲
           </button>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          {/* <div style={{ display: 'flex', gap: '8px' }}>
             <input
               value={sessionIdInput}
               onChange={(event) => setSessionIdInput(event.target.value)}
@@ -92,7 +92,7 @@ export default function HomePage() {
             >
               Join
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
