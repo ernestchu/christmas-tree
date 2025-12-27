@@ -20,7 +20,7 @@ import { GestureRecognizer, FilesetResolver, DrawingUtils } from '@mediapipe/tas
 
 export type SceneState = 'CHAOS' | 'FORMED' | 'CAROUSEL' | 'PHOTO';
 
-export const DEFAULT_PHOTOS = Array.from({ length: 68 }, (_, i) => `/photos/${i + 1}.jpg`);
+export const DEFAULT_PHOTOS = Array.from({ length: 30 }, (_, i) => `/photos/${i + 1}.jpg`);
 
 const CONFIG = {
   colors: {
