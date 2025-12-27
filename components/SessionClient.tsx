@@ -480,7 +480,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
   );
 }
 
-const compressImage = (file: File, maxWidth = 512, quality = 0.7): Promise<string> => {
+const compressImage = (file: File, maxWidth = 384, quality = 0.9): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);

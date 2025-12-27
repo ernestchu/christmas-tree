@@ -111,7 +111,25 @@ const Foliage = ({ state }: { state: SceneState }) => {
 };
 
 const PhotoOrnaments = ({ state, photos }: { state: SceneState, photos: string[] }) => {
-  const textures = useTexture(photos);
+  const _textures = useTexture(photos);
+  const textures = useMemo(() => {
+    return _textures.map(texture => {
+      const t = texture.clone();
+      t.colorSpace = THREE.SRGBColorSpace;
+      if (t.image) {
+        const aspect = t.image.width / t.image.height;
+        if (aspect > 1) {
+          t.repeat.set(1 / aspect, 1);
+          t.offset.set((1 - 1 / aspect) / 2, 0);
+        } else {
+          t.repeat.set(1, aspect);
+          t.offset.set(0, (1 - aspect) / 2);
+        }
+        t.needsUpdate = true;
+      }
+      return t;
+    });
+  }, [_textures]);
   const count = photos.length;
   const groupRef = useRef<THREE.Group>(null);
 
